@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Assistant devis – SOCOTEC</title>
+<style>
+  :root {
+    --navy: #163761;
+    --navy-deep: #0f2745;
+    --blue: #1e6bd6;
+    --paper: #f4f7fa;
+    --panel: #ffffff;
+    --rule: #e0e7ef;
+    --rule-soft: #eef2f7;
+    --ink: #16233a;
+    --muted: #5c6b7f;
+    --faint: #8b98a9;
+    --tint: #eef4fb;
+    --green: #0b7a4b;
+    --red: #b42318;
+    --r: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Segoe UI", "Segoe UI Variable Text", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14.5px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button, input, select, textarea { font: inherit; color: inherit; }
+
+  /* ----------------------------- Barre haute ----------------------------- */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--navy);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 20px;
+    flex-wrap: wrap;
+  }
+
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+  .mark {
+    width: 30px; height: 30px;
+    border-radius: 7px;
+    background: #fff;
+    color: var(--navy);
+    display: grid; place-items: center;
+    font-weight: 800; font-size: 13px;
+    letter-spacing: -0.02em;
+    flex: none;
+  }
+
+  .brand b { display: block; font-size: 15px; font-weight: 700; line-height: 1.25; }
+  .brand span { display: block; font-size: 12.5px; color: #b9cbe4; }
+
+  .topbar-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .save-state {
+    font-size: 12.5px; color: #a9c0dd;
+    display: inline-flex; align-items: center; gap: 6px;
+    white-space: nowrap;
+  }
+  .save-state::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: #6ee7a8;
+  }
+  .save-state.off::before { background: #d1a24a; }
+
+  /* ------------------------------- Boutons ------------------------------- */
+  .btn {
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .btn.primary { background: #fff; color: var(--navy); }
+  .btn.primary:hover { background: var(--tint); }
+
+  .btn.ghost { color: #dce8f6; border-color: rgba(255,255,255,.35); }
+  .btn.ghost:hover { background: rgba(255,255,255,.12); }
+
+  .btn.solid { background: var(--navy); color: #fff; }
+  .btn.solid:hover { background: var(--navy-deep); }
+
+  .btn.line { border-color: var(--rule); background: #fff; color: var(--ink); }
+  .btn.line:hover { background: var(--paper); border-color: #c9d5e3; }
+
+  .btn.mini { padding: 4px 9px; font-size: 12px; font-weight: 600; border-radius: 6px; }
+
+  /* ------------------------------- Layout -------------------------------- */
+  .layout {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 18px 20px 40px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .col { display: grid; gap: 14px; min-width: 0; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+  }
+
+  .panel-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    padding: 14px 16px 0;
+  }
+
+  .panel-head h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+    border-left: 3px solid var(--navy);
+    padding-left: 9px;
+  }
+
+  .panel-hint { margin: 0; font-size: 12.5px; color: var(--muted); }
+
+  .panel-body { padding: 14px 16px 16px; }
+
+  /* -------------------------------- Chips -------------------------------- */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .chip {
+    border: 1px solid var(--rule);
+    background: #fff;
+    color: #33475f;
+    border-radius: 999px;
+    padding: 7px 14px 7px 12px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: .15s ease;
+  }
+  .chip:hover { border-color: #b9c9db; background: var(--paper); }
+  .chip .tick { width: 14px; opacity: 0; transition: opacity .15s ease; font-size: 12px; }
+  .chip[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .chip[aria-pressed="true"] .tick { opacity: 1; }
+  .chip:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .inline-note {
+    margin: 12px 0 0;
+    font-size: 12.5px;
+    color: var(--muted);
+    background: var(--paper);
+    border-radius: 8px;
+    padding: 8px 11px;
+  }
+
+  /* -------------------------------- Champs ------------------------------- */
+  .grid { display: grid; gap: 12px 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .span-all { grid-column: 1 / -1; }
+
+  .field { display: grid; gap: 5px; min-width: 0; }
+
+  .field label { font-size: 12.5px; font-weight: 600; color: #44546a; }
+
+  input, select, textarea {
+    width: 100%;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: #fff;
+    padding: 8px 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(30, 107, 214, .13);
+  }
+  textarea { min-height: 76px; resize: vertical; line-height: 1.5; }
+  select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, #64748b 50%), linear-gradient(135deg, #64748b 50%, transparent 50%); background-position: calc(100% - 16px) 15px, calc(100% - 11px) 15px; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; padding-right: 30px; }
+
+  /* ----------------------------- Accordéons ------------------------------ */
+  .acc { border: 1px solid var(--rule); border-radius: 9px; overflow: hidden; }
+  .acc + .acc { margin-top: 8px; }
+  .acc.required { border-color: #c9dbf2; }
+
+  .acc-head {
+    width: 100%;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: #fff;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+  }
+  .acc-head:hover { background: var(--paper); }
+  .acc-head:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+
+  .caret { color: var(--faint); font-size: 11px; transition: transform .15s ease; flex: none; width: 10px; }
+  .acc.open .caret { transform: rotate(90deg); }
+
+  .acc-title { flex: 1; font-size: 13.5px; font-weight: 600; color: #22364f; min-width: 0; }
+
+  .flag {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .01em;
+    color: var(--navy); background: var(--tint);
+    border-radius: 4px; padding: 2px 6px; flex: none;
+  }
+
+  .count {
+    font-size: 12px; font-weight: 700; color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    background: var(--paper); border: 1px solid var(--rule);
+    border-radius: 999px; padding: 2px 9px; flex: none;
+  }
+  .count.none { color: var(--faint); }
+
+  .acc-body { padding: 4px 12px 12px; border-top: 1px solid var(--rule-soft); }
+
+  .bulk { display: flex; gap: 6px; padding: 9px 0 10px; }
+
+  .checks { display: grid; gap: 2px; }
+
+  .check {
+    display: flex; align-items: flex-start; gap: 9px;
+    padding: 6px 8px; border-radius: 7px; cursor: pointer;
+    font-size: 13.5px; line-height: 1.45;
+  }
+  .check:hover { background: var(--paper); }
+  .check input { width: 16px; height: 16px; margin: 2px 0 0; accent-color: var(--navy); flex: none; }
+  .check.locked { cursor: default; color: var(--faint); }
+  .check.locked:hover { background: transparent; }
+  .check .why { color: var(--faint); font-size: 12px; }
+
+  .adds { display: grid; gap: 5px; margin-top: 8px; }
+
+  .add-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    border: 1px dashed #c6d3e2; border-radius: 7px;
+    padding: 6px 8px 6px 11px; font-size: 13px; background: #fbfdff;
+  }
+
+  .x {
+    border: none; background: transparent; color: var(--red);
+    cursor: pointer; font-size: 15px; line-height: 1; padding: 3px 6px; border-radius: 5px;
+  }
+  .x:hover { background: #fdf0ef; }
+
+  .add-row { display: flex; gap: 7px; margin-top: 9px; }
+  .add-row input { flex: 1; font-size: 13px; padding: 7px 10px; }
+
+  /* ------------------------------- Aperçu -------------------------------- */
+  .preview { position: sticky; top: 68px; }
+
+  .preview .panel-head { padding-bottom: 0; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .toolbar select { width: auto; font-size: 12.5px; padding: 5px 26px 5px 9px; background-position: calc(100% - 14px) 13px, calc(100% - 9px) 13px; }
+  .swatch { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: #44546a; font-weight: 600; cursor: pointer; }
+  .swatch input { width: 15px; height: 15px; accent-color: var(--navy); }
+
+  .subject { padding: 12px 16px; border-bottom: 1px solid var(--rule-soft); }
+  .subject-label { font-size: 12.5px; font-weight: 600; color: #44546a; margin-bottom: 5px; }
+  .subject-value { background: var(--paper); border-radius: 7px; padding: 9px 11px; font-size: 13px; line-height: 1.5; }
+
+  .tabs { display: flex; gap: 4px; padding: 10px 16px 0; }
+  .tab {
+    border: 1px solid var(--rule); border-bottom: none; background: var(--paper);
+    color: var(--muted); border-radius: 7px 7px 0 0;
+    padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  }
+  .tab.active { background: #fff; color: var(--navy); border-color: var(--navy); }
+  .tab:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+
+  .mailbox { padding: 0 16px 14px; border-top: 1px solid var(--rule); margin-top: -1px; }
+  .mail-render, pre {
+    max-height: min(58vh, 620px); overflow: auto;
+    background: #fff; border: 1px solid var(--rule); border-radius: 8px;
+    padding: 16px; margin: 12px 0 0;
+  }
+  pre { white-space: pre-wrap; word-wrap: break-word; font-family: Consolas, Menlo, monospace; font-size: 12.5px; line-height: 1.65; }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 14px; }
+
+  .tip { padding: 0 16px 16px; margin: 0; font-size: 12.5px; color: var(--muted); }
+  kbd {
+    font-family: inherit; font-size: 11.5px; font-weight: 700;
+    background: var(--paper); border: 1px solid var(--rule);
+    border-bottom-width: 2px; border-radius: 5px; padding: 1px 5px;
+  }
+
+  /* ------------------------------- Toast --------------------------------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 24px;
+    transform: translate(-50%, 14px);
+    background: #10203a; color: #fff;
+    padding: 11px 18px; border-radius: 9px;
+    font-size: 13.5px; font-weight: 600;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, .3);
+    opacity: 0; pointer-events: none; transition: .2s ease; z-index: 200;
+    max-width: min(92vw, 520px);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast.error { background: var(--red); }
+
+  #fatal {
+    position: fixed; inset: 0 0 auto 0; background: var(--red); color: #fff;
+    padding: 12px 18px; font-size: 13.5px; font-weight: 600; z-index: 300;
+  }
+
+  .offscreen { position: fixed; left: -9999px; top: 0; white-space: normal; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } }
+
+  @media (max-width: 1120px) {
+    .layout { grid-template-columns: 1fr; }
+    .preview { position: static; }
+  }
+
+  @media (max-width: 720px) {
+    .grid, .grid.two { grid-template-columns: 1fr; }
+    .layout { padding: 14px 12px 32px; }
+    .topbar { padding: 10px 12px; }
+    .save-state { display: none; }
+  }
+
+  @media print {
+    .topbar, .col:first-child, .toolbar, .tabs, .actions, .tip, .toast { display: none !important; }
+    .layout { display: block; }
+    .panel { border: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="mark">SD</div>
+    <div>
+      <b>Assistant devis</b>
+      <span>Demande d’éléments au client</span>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <span class="save-state" id="saveState">Brouillon enregistré</span>
+    <button class="btn ghost" id="newFile">Nouveau dossier</button>
+    <button class="btn ghost" id="copySubjectTop">Copier l’objet</button>
+    <button class="btn primary" id="copyMailTop">Copier le mail</button>
+  </div>
+</header>
+
+<main class="layout">
+  <div class="col">
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Besoin du client</h2>
+        <p class="panel-hint">Chaque besoin ajoute sa rubrique de questions.</p>
+      </div>
+      <div class="panel-body">
+        <div class="chips" id="chips"></div>
+        <p class="inline-note" id="besoinNote" hidden></p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Dossier et contexte</h2>
+        <p class="panel-hint">Ce que vous saisissez ici n’est plus demandé au client.</p>
+      </div>
+      <div class="panel-body">
+        <div class="grid">
+          <div class="field">
+            <label for="societe">Société cliente</label>
+            <input id="societe" placeholder="SCI Rivoli" />
+          </div>
+          <div class="field">
+            <label for="reference">Référence dossier</label>
+            <input id="reference" placeholder="DOS-2026-014" />
+          </div>
+          <div class="field">
+            <label for="destinataire">Formule d’appel</label>
+            <input id="destinataire" placeholder="Madame, Monsieur" />
+          </div>
+          <div class="field">
+            <label for="transactionType">Type de transaction</label>
+            <select id="transactionType">
+              <option value="">À demander au client</option>
+              <option>Vente</option>
+              <option>Location</option>
+              <option>Travaux</option>
+              <option>Démolition</option>
+              <option>Autre</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="propertyType">Type de bien</label>
+            <select id="propertyType">
+              <option value="">À demander au client</option>
+              <option>Maison</option>
+              <option>Appartement</option>
+              <option>Immeuble</option>
+              <option>Local commercial</option>
+              <option>Bureaux</option>
+              <option>Entrepôt</option>
+              <option>Autre</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="constructionYear">Année de construction</label>
+            <input id="constructionYear" placeholder="1930" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label for="surface">Surface approximative (m²)</label>
+            <input id="surface" placeholder="120" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label for="interventionDate">Date souhaitée d’intervention</label>
+            <input id="interventionDate" type="date" />
+          </div>
+          <div class="field">
+            <label for="complementObjet">Complément d’objet du mail</label>
+            <input id="complementObjet" placeholder="Résidence principale" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Éléments à demander</h2>
+        <div style="display:flex; gap:6px;">
+          <button class="btn line mini" id="expandAll">Tout déplier</button>
+          <button class="btn line mini" id="collapseAll">Tout replier</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="sections"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Fin de mail</h2>
+      </div>
+      <div class="panel-body">
+        <div class="grid two">
+          <div class="field span-all">
+            <label for="noteComplementaire">Phrase libre à insérer avant la formule de politesse</label>
+            <textarea id="noteComplementaire" placeholder="Merci de nous préciser si le bien est occupé et si des accès spécifiques sont à prévoir."></textarea>
+          </div>
+          <div class="field span-all">
+            <label for="customBottomLabel">Intitulé du bloc « pièces jointes »</label>
+            <input id="customBottomLabel" />
+          </div>
+        </div>
+        <div class="add-row">
+          <input id="bottomInput" placeholder="Photographies du site, dernier rapport, plans PDF…" />
+          <button class="btn solid" id="addBottom">Ajouter</button>
+        </div>
+        <div class="adds" id="bottomList"></div>
+      </div>
+    </section>
+  </div>
+
+  <aside class="col">
+    <section class="panel preview">
+      <div class="panel-head">
+        <h2>Le mail</h2>
+        <p class="panel-hint">Aperçu fidèle au collage Outlook.</p>
+      </div>
+
+      <div class="toolbar">
+        <select id="fontChoice" aria-label="Police du mail">
+          <option value="Aptos, Calibri, Arial, sans-serif">Aptos</option>
+          <option value="Calibri, Arial, sans-serif">Calibri</option>
+          <option value="Arial, Helvetica, sans-serif">Arial</option>
+          <option value="Verdana, Geneva, sans-serif">Verdana</option>
+          <option value="'Segoe UI', Arial, sans-serif">Segoe UI</option>
+        </select>
+        <select id="sizeChoice" aria-label="Taille du texte">
+          <option value="10pt">10 pt</option>
+          <option value="11pt">11 pt</option>
+          <option value="12pt">12 pt</option>
+        </select>
+        <label class="swatch"><input type="checkbox" id="colorTitles" /> Titres en bleu SOCOTEC</label>
+      </div>
+
+      <div class="subject">
+        <div class="subject-label">Objet</div>
+        <div class="subject-value" id="subjectPreview"></div>
+      </div>
+
+      <div class="tabs">
+        <button type="button" class="tab active" data-tab="rich">Mis en forme</button>
+        <button type="button" class="tab" data-tab="plain">Texte brut</button>
+      </div>
+
+      <div class="mailbox">
+        <div class="mail-render" id="mailRich"></div>
+        <pre id="mailPlain" hidden></pre>
+      </div>
+
+      <div class="actions">
+        <button class="btn solid" id="copyMailBottom">Copier le mail</button>
+        <button class="btn line" id="copyPlain">Copier en texte brut</button>
+        <button class="btn line" id="selectMail">Sélectionner</button>
+      </div>
+
+      <p class="tip">
+        Raccourci : <kbd>Ctrl</kbd> + <kbd>Entrée</kbd> pour copier. Dans Outlook, collez avec <kbd>Ctrl</kbd> + <kbd>V</kbd> ;
+        si la mise en forme saute, vérifiez que le message est au format HTML et non en texte brut.
+      </p>
+    </section>
+  </aside>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="fatal" hidden></div>
+
+<script>
+window.addEventListener("error", e => {
+  const el = document.getElementById("fatal");
+  if (!el) return;
+  el.hidden = false;
+  el.textContent = "Erreur de script : " + e.message + " (ligne " + e.lineno + ")";
+});
+
+/* =====================================================================
+   1. Contenu métier
+   ===================================================================== */
+
+const FACTURATION_NOTE =
+  "Depuis le 1er septembre 2026, nos factures doivent vous être transmises par voie électronique " +
+  "via une plateforme agréée. Ces informations nous sont nécessaires pour créer ou mettre à jour votre compte client.";
+
+const baseSections = {
+  administratives: {
+    title: "Informations administratives",
+    always: true,
+    items: [
+      "Raison sociale",
+      "Numéro SIRET",
+      "Adresse complète de facturation",
+      "Contact : nom, téléphone, e-mail",
+      "Conditions de paiement"
+    ]
+  },
+
+  facturation: {
+    title: "Facturation électronique",
+    always: true,
+    flag: "Obligatoire",
+    note: FACTURATION_NOTE,
+    items: [
+      "Numéro de TVA intracommunautaire (obligatoire si vous en avez un)",
+      "Niveau de routage retenu : SIREN, SIREN suffixé, SIRET ou code de routage (à défaut, nous utiliserons votre SIREN)",
+      "Suffixe ou code de routage à utiliser (si vous en avez un)",
+      "BT-10 – Référence interne client (si obligatoire)",
+      "BT-11 – Code projet client (si obligatoire)",
+      "BT-12 – Référence de marché ou numéro de contrat (si obligatoire)"
+    ],
+    optional: [
+      "Plateforme agréée retenue pour la réception de vos factures"
+    ]
+  },
+
+  bien: {
+    title: "Bien concerné",
+    always: true,
+    items: [
+      "Adresse complète du bien",
+      "Type de bien (maison, appartement, local, etc.)",
+      "Surface approximative (m²)",
+      "Année de construction",
+      "Nature de la demande (vente, location, travaux, démolition, autre)",
+      "Date souhaitée pour l’intervention et la remise du/des rapport(s)",
+      "Contraintes d’accès (codes, clés, horaires, présence sur place, etc.)"
+    ]
+  },
+
+  communsTravaux: {
+    title: "Opération / travaux",
+    items: [
+      "Descriptif des travaux / nature de l’opération",
+      "Programme de travaux ou notice descriptive",
+      "Montant prévisionnel des travaux",
+      "Durée prévisionnelle des travaux",
+      "Date prévisionnelle de démarrage des travaux",
+      "Planning prévisionnel de l’opération / des interventions",
+      "Plans, coupes et pièces techniques disponibles",
+      "Coordonnées du maître d’ouvrage, du maître d’œuvre et des intervenants"
+    ]
+  },
+
+  dpe: {
+    title: "Compléments pour le DPE",
+    items: [
+      "Type de chauffage et de production d’eau chaude",
+      "Surface habitable exacte",
+      "Plan du bien avec cotations / dimensions",
+      "Factures énergétiques des 3 dernières années (si possible)"
+    ]
+  },
+
+  audit: {
+    title: "Compléments pour l’audit énergétique",
+    items: [
+      "Plans détaillés du bien (tous niveaux)",
+      "Factures d’énergie des 3 dernières années",
+      "Travaux envisagés et budget approximatif",
+      "Objectif de performance énergétique (si défini)"
+    ]
+  },
+
+  daat: {
+    title: "Compléments pour le diagnostic avant travaux",
+    items: [
+      "Zones précisément impactées par les travaux",
+      "DTA ou diagnostics amiante existants (si disponibles)"
+    ]
+  },
+
+  bureauControle: {
+    title: "Compléments pour le bureau de contrôle",
+    items: [
+      "Type d’ouvrage concerné",
+      "Surface, nombre de niveaux et usages du bâtiment",
+      "Missions de contrôle technique souhaitées"
+    ]
+  },
+
+  csps: {
+    title: "Compléments pour la mission CSPS",
+    items: [
+      "Nombre prévisionnel d’entreprises intervenantes",
+      "Contraintes particulières de coactivité ou d’accès",
+      "Niveau et phases de mission CSPS souhaités"
+    ]
+  },
+
+  controleurPeriodique: {
+    title: "Compléments pour le contrôle périodique",
+    items: [
+      "Type de site et activité exercée",
+      "Installations ou équipements concernés",
+      "Périodicité attendue ou historique des contrôles",
+      "Derniers rapports ou observations disponibles",
+      "Contraintes d’accès, horaires d’intervention et accompagnement sur site",
+      "Nombre de sites ou d’équipements à contrôler"
+    ]
+  }
+};
+
+// Ordre d'affichage figé : le mail sort toujours dans le même ordre,
+// quel que soit l'ordre dans lequel les besoins ont été cliqués.
+const SECTION_ORDER = [
+  "administratives", "facturation", "bien", "communsTravaux",
+  "dpe", "audit", "daat", "bureauControle", "csps", "controleurPeriodique"
+];
+
+const diagnosticsConfig = [
+  { key: "dpe", label: "DPE" },
+  { key: "audit", label: "Audit énergétique" },
+  { key: "daat", label: "Avant travaux" },
+  { key: "bureauControle", label: "Bureau de contrôle" },
+  { key: "csps", label: "CSPS" },
+  { key: "controleurPeriodique", label: "Contrôleur périodique" }
+];
+
+const TRAVAUX_KEYS = ["daat", "bureauControle", "csps"];
+
+const defaultForm = {
+  destinataire: "Madame, Monsieur",
+  societe: "",
+  reference: "",
+  complementObjet: "",
+  transactionType: "",
+  propertyType: "",
+  constructionYear: "",
+  surface: "",
+  interventionDate: "",
+  noteComplementaire: "",
+  customBottomLabel: "Pièces jointes ou éléments complémentaires à prévoir"
+};
+
+const defaultStyle = { font: "Aptos, Calibri, Arial, sans-serif", size: "11pt", colorTitles: true };
+
+const STORE_KEY = "socotec-assistant-devis-v6";
+
+/* =====================================================================
+   2. État
+   ===================================================================== */
+
+function dpeItems(propertyType) {
+  const utiles = ["Local commercial", "Bureaux", "Entrepôt", "Autre"];
+  return [
+    "Type de chauffage et de production d’eau chaude",
+    utiles.includes(propertyType) ? "Surface utile exacte" : "Surface habitable exacte",
+    "Plan du bien avec cotations / dimensions",
+    "Factures énergétiques des 3 dernières années (si possible)"
+  ];
+}
+
+// Ligne de proposition commerciale : on propose la ou les missions que le
+// client n'a pas encore demandées. Si CSPS et bureau de contrôle sont déjà
+// cochés, il n'y a plus rien à proposer et la ligne disparaît.
+function communsTravauxQuestion(diagnostics) {
+  const csps = diagnostics.includes("csps");
+  const bc = diagnostics.includes("bureauControle");
+  if (csps && bc) return null;
+  if (csps) return "Souhaitez-vous que nous intégrions également le contrôle technique au devis ?";
+  if (bc) return "Souhaitez-vous que nous intégrions également la coordination SPS au devis ?";
+  return "Souhaitez-vous que nous intégrions au devis la coordination SPS et/ou le contrôle technique ?";
+}
+
+function communsTravauxItems(diagnostics) {
+  const question = communsTravauxQuestion(diagnostics);
+  return question ? [...baseSections.communsTravaux.items, question] : [...baseSections.communsTravaux.items];
+}
+
+function buildSections() {
+  const out = {};
+  Object.entries(baseSections).forEach(([key, s]) => {
+    let items = [...s.items];
+    if (key === "dpe") items = dpeItems("");
+    if (key === "communsTravaux") items = communsTravauxItems([]);
+    const optional = s.optional ? [...s.optional] : [];
+    const selected = {};
+    items.forEach(i => selected[i] = true);
+    optional.forEach(i => selected[i] = false);
+    out[key] = { items, optional, selected, customItems: [], draft: "" };
+  });
+  return out;
+}
+
+function freshState() {
+  return {
+    diagnostics: [],
+    sections: buildSections(),
+    open: {},
+    bottomItems: [],
+    form: { ...defaultForm },
+    style: { ...defaultStyle },
+    tab: "rich"
+  };
+}
+
+let state = freshState();
+let storageOk = true;
+
+/* ---- Persistance (silencieuse si le navigateur la bloque) ---- */
+function save() {
+  if (!storageOk) return;
+  try {
+    const light = {
+      diagnostics: state.diagnostics,
+      open: state.open,
+      bottomItems: state.bottomItems,
+      form: state.form,
+      style: state.style,
+      tab: state.tab,
+      picks: Object.fromEntries(
+        Object.entries(state.sections).map(([k, s]) => [k, { selected: s.selected, customItems: s.customItems }])
+      )
+    };
+    localStorage.setItem(STORE_KEY, JSON.stringify(light));
+  } catch (e) {
+    storageOk = false;
+    const el = document.getElementById("saveState");
+    el.classList.add("off");
+    el.textContent = "Sauvegarde indisponible";
+  }
+}
+
+function load() {
+  let raw = null;
+  try { raw = localStorage.getItem(STORE_KEY); }
+  catch (e) {
+    storageOk = false;
+    const el = document.getElementById("saveState");
+    el.classList.add("off");
+    el.textContent = "Sauvegarde indisponible";
+    return;
+  }
+  if (!raw) return;
+  let data;
+  try { data = JSON.parse(raw); } catch (e) { return; }
+  if (!data || typeof data !== "object") return;
+
+  state.diagnostics = Array.isArray(data.diagnostics) ? data.diagnostics.filter(d => baseSections[d]) : [];
+  state.open = data.open && typeof data.open === "object" ? data.open : {};
+  state.bottomItems = Array.isArray(data.bottomItems) ? data.bottomItems : [];
+  state.form = { ...defaultForm, ...(data.form || {}) };
+  state.style = { ...defaultStyle, ...(data.style || {}) };
+  state.tab = data.tab === "plain" ? "plain" : "rich";
+
+  // Les listes d'éléments viennent toujours du code : une mise à jour du
+  // fichier ajoute donc ses nouvelles lignes même sur un brouillon existant.
+  if (data.picks && typeof data.picks === "object") {
+    Object.entries(state.sections).forEach(([key, section]) => {
+      const saved = data.picks[key];
+      if (!saved) return;
+      if (saved.selected && typeof saved.selected === "object") {
+        Object.keys(section.selected).forEach(item => {
+          if (Object.prototype.hasOwnProperty.call(saved.selected, item)) {
+            section.selected[item] = !!saved.selected[item];
+          }
+        });
+      }
+      if (Array.isArray(saved.customItems)) section.customItems = saved.customItems;
+    });
+  }
+}
+
+/* =====================================================================
+   3. Logique
+   ===================================================================== */
+
+function activeSectionKeys() {
+  const keys = SECTION_ORDER.filter(k => baseSections[k].always);
+  if (state.diagnostics.some(d => TRAVAUX_KEYS.includes(d))) keys.push("communsTravaux");
+  state.diagnostics.forEach(d => { if (!keys.includes(d)) keys.push(d); });
+  return SECTION_ORDER.filter(k => keys.includes(k));
+}
+
+function selectedLabels() {
+  return diagnosticsConfig.filter(d => state.diagnostics.includes(d.key)).map(d => d.label);
+}
+
+function syncDpe() {
+  const s = state.sections.dpe;
+  const next = dpeItems(state.form.propertyType);
+  const prev = s.selected;
+  s.items = next;
+  const selected = {};
+  next.forEach(i => selected[i] = Object.prototype.hasOwnProperty.call(prev, i) ? prev[i] : true);
+  s.optional.forEach(i => selected[i] = !!prev[i]);
+  s.selected = selected;
+}
+
+function syncCommunsTravaux() {
+  const s = state.sections.communsTravaux;
+  const nextQuestion = communsTravauxQuestion(state.diagnostics);
+  const next = communsTravauxItems(state.diagnostics);
+  const prev = s.selected;
+  s.items = next;
+  const selected = {};
+  next.forEach(i => {
+    if (Object.prototype.hasOwnProperty.call(prev, i)) selected[i] = prev[i];
+    // La ligne a été reformulée (ou réapparaît) : on garde la case telle que
+    // l'utilisateur l'avait laissée.
+    else if (i === nextQuestion && typeof s.questionOn === "boolean") selected[i] = s.questionOn;
+    else selected[i] = true;
+  });
+  s.optional.forEach(i => selected[i] = !!prev[i]);
+  s.selected = selected;
+  if (nextQuestion) s.questionOn = selected[nextQuestion];
+}
+
+// Une information déjà saisie dans « Dossier et contexte » n'est plus
+// redemandée au client : la ligne se désactive toute seule.
+function alreadyKnown(sectionKey, item) {
+  if (sectionKey !== "bien") return false;
+  const f = state.form;
+  const map = {
+    "Type de bien (maison, appartement, local, etc.)": !!f.propertyType,
+    "Surface approximative (m²)": !!f.surface,
+    "Année de construction": !!f.constructionYear,
+    "Nature de la demande (vente, location, travaux, démolition, autre)": !!f.transactionType,
+    "Date souhaitée pour l’intervention et la remise du/des rapport(s)": !!f.interventionDate
+  };
+  return !!map[item];
+}
+
+function allItems(key) {
+  const s = state.sections[key];
+  return [...s.items, ...s.optional];
+}
+
+function isOn(key, item) {
+  return !!state.sections[key].selected[item] && !alreadyKnown(key, item);
+}
+
+function visibleItems(key) {
+  const s = state.sections[key];
+  return [...allItems(key).filter(i => isOn(key, i)), ...s.customItems.filter(Boolean)];
+}
+
+function selectableItems(key) {
+  return allItems(key).filter(i => !alreadyKnown(key, i));
+}
+
+function formatDate(v) {
+  if (!v) return "";
+  const [y, m, d] = v.split("-");
+  return (y && m && d) ? `${d}/${m}/${y}` : v;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                  .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+function buildSubject() {
+  const parts = ["Demande d’éléments pour établissement du devis"];
+  const labels = selectedLabels();
+  if (labels.length) parts.push(labels.join(" / "));
+  if (state.form.societe) parts.push(state.form.societe);
+  if (state.form.reference) parts.push(state.form.reference);
+  if (state.form.complementObjet) parts.push(state.form.complementObjet);
+  return parts.join(" – ");
+}
+
+function buildContent() {
+  const f = state.form;
+  const labels = selectedLabels();
+
+  const context = [];
+  if (labels.length) context.push(["Besoin identifié", labels.join(" / ")]);
+  if (f.societe) context.push(["Société cliente", f.societe]);
+  if (f.reference) context.push(["Référence dossier", f.reference]);
+  if (f.complementObjet) context.push(["Complément d’objet", f.complementObjet]);
+  if (f.transactionType) context.push(["Type de transaction", f.transactionType]);
+  if (f.propertyType) context.push(["Type de bien", f.propertyType]);
+  if (f.constructionYear) context.push(["Année de construction", f.constructionYear]);
+  if (f.surface) context.push(["Surface approximative", `${f.surface} m²`]);
+  if (f.interventionDate) context.push(["Date souhaitée d’intervention", formatDate(f.interventionDate)]);
+
+  const blocks = [];
+  activeSectionKeys().forEach(key => {
+    const items = visibleItems(key);
+    if (items.length) blocks.push({ title: baseSections[key].title, note: baseSections[key].note || "", items });
+  });
+  if (state.bottomItems.length) {
+    blocks.push({
+      title: f.customBottomLabel || defaultForm.customBottomLabel,
+      note: "",
+      items: [...state.bottomItems]
+    });
+  }
+
+  return {
+    salutation: `Bonjour ${f.destinataire || "Madame, Monsieur"},`,
+    intro: [
+      "Merci pour votre demande.",
+      "Afin d’établir un devis adapté à votre besoin, nous vous remercions de bien vouloir nous transmettre les éléments suivants :"
+    ],
+    context,
+    blocks,
+    note: (f.noteComplementaire || "").trim(),
+    outro: [
+      "À réception de ces éléments, nous pourrons vous transmettre un devis détaillé et adapté à votre besoin.",
+      "Nous restons à votre disposition pour toute précision complémentaire."
+    ],
+    closing: "Cordialement,"
+  };
+}
+
+/* ---- Rendu HTML du mail : styles inline + <font>, pour Outlook ---- */
+function buildMailHtml(forClipboard) {
+  const c = buildContent();
+  const s = state.style;
+  const titleColor = s.colorTitles ? "#163761" : "#000000";
+  const textColor = "#212121";
+  const face = s.font.split(",")[0].replace(/['"]/g, "").trim();
+  const fontCss = `font-family:${s.font};font-size:${s.size};`;
+  const base = `${fontCss}color:${textColor};line-height:1.45;`;
+
+  const F = (inner, color) => `<font face="${face}" color="${color}">${inner}</font>`;
+  const P = (html, mb) => `<p style="margin:0 0 ${mb}px 0;${base}">${F(html, textColor)}</p>`;
+  const H = t => `<p style="margin:18px 0 6px 0;${fontCss}color:${titleColor};line-height:1.45;">${F("<b>" + esc(t) + "</b>", titleColor)}</p>`;
+  const NOTE = t => `<p style="margin:0 0 7px 0;${fontCss}color:#5a6472;line-height:1.45;">${F("<i>" + esc(t) + "</i>", "#5a6472")}</p>`;
+  const UL = items =>
+    `<ul style="margin:0 0 4px 24px;padding-left:0;${base}">` +
+    items.map(i => `<li style="margin:0 0 4px 0;${base}">${F(esc(i), textColor)}</li>`).join("") +
+    `</ul>`;
+
+  const out = [];
+  out.push(P(esc(c.salutation), 12));
+  out.push(P(c.intro.map(esc).join("<br />"), 12));
+
+  if (c.context.length) {
+    out.push(H("Contexte de la demande"));
+    out.push(
+      `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 4px 0;${base}">` +
+      c.context.map(([k, v]) =>
+        `<tr>` +
+        `<td style="padding:2px 16px 2px 0;vertical-align:top;white-space:nowrap;${fontCss}color:#5a6472;">${F(esc(k), "#5a6472")}</td>` +
+        `<td style="padding:2px 0;vertical-align:top;${base}">${F("<b>" + esc(v) + "</b>", textColor)}</td>` +
+        `</tr>`
+      ).join("") +
+      `</table>`
+    );
+  }
+
+  c.blocks.forEach(b => {
+    out.push(H(b.title));
+    if (b.note) out.push(NOTE(b.note));
+    out.push(UL(b.items));
+  });
+
+  if (c.note) {
+    out.push(`<p style="margin:18px 0 12px 0;${base}">${F(esc(c.note).replace(/\n/g, "<br />"), textColor)}</p>`);
+  } else {
+    out.push(`<div style="height:6px;line-height:6px;">&nbsp;</div>`);
+  }
+
+  out.push(P(c.outro.map(esc).join("<br />"), 12));
+  out.push(P(esc(c.closing), 0));
+
+  const body = `<div style="${base}">${out.join("")}</div>`;
+  return forClipboard ? `<html><head><meta charset="utf-8" /></head><body>${body}</body></html>` : body;
+}
+
+function buildMailText() {
+  const c = buildContent();
+  const lines = [];
+  lines.push(c.salutation, "");
+  c.intro.forEach(l => lines.push(l));
+  lines.push("");
+
+  if (c.context.length) {
+    lines.push("CONTEXTE DE LA DEMANDE");
+    c.context.forEach(([k, v]) => lines.push(`   ${k} : ${v}`));
+    lines.push("");
+  }
+
+  c.blocks.forEach(b => {
+    lines.push(b.title.toUpperCase());
+    if (b.note) lines.push(b.note);
+    b.items.forEach(i => lines.push(`   • ${i}`));
+    lines.push("");
+  });
+
+  if (c.note) lines.push(c.note, "");
+  c.outro.forEach(l => lines.push(l));
+  lines.push("", c.closing);
+  return lines.join("\n");
+}
+
+/* =====================================================================
+   4. Presse-papier
+   ===================================================================== */
+
+function selectNode(node) {
+  const sel = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(node);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  return sel;
+}
+
+function copyViaEvent(html, plain) {
+  let ok = false;
+  const handler = e => {
+    if (!e.clipboardData) return;
+    e.clipboardData.setData("text/html", html);
+    e.clipboardData.setData("text/plain", plain);
+    e.preventDefault();
+    ok = true;
+  };
+  document.addEventListener("copy", handler, true);
+  const holder = document.createElement("div");
+  holder.className = "offscreen";
+  holder.textContent = "\u00a0";
+  document.body.appendChild(holder);
+  selectNode(holder);
+  try { document.execCommand("copy"); } catch (e) {}
+  window.getSelection().removeAllRanges();
+  holder.remove();
+  document.removeEventListener("copy", handler, true);
+  return ok;
+}
+
+function fallbackCopyRich(html) {
+  const holder = document.createElement("div");
+  holder.className = "offscreen";
+  holder.setAttribute("contenteditable", "true");
+  holder.innerHTML = html;
+  document.body.appendChild(holder);
+  selectNode(holder);
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  window.getSelection().removeAllRanges();
+  holder.remove();
+  return ok;
+}
+
+async function copyRich(html, plain) {
+  if (navigator.clipboard && window.ClipboardItem) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({
+        "text/html": new Blob([html], { type: "text/html" }),
+        "text/plain": new Blob([plain], { type: "text/plain" })
+      })]);
+      return true;
+    } catch (e) {}
+  }
+  if (copyViaEvent(html, plain)) return true;
+  if (fallbackCopyRich(html)) return true;
+  return false;
+}
+
+async function copyPlainText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+  }
+  const area = document.createElement("textarea");
+  area.className = "offscreen";
+  area.value = text;
+  document.body.appendChild(area);
+  area.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  area.remove();
+  return ok;
+}
+
+let toastTimer = null;
+function toast(msg, isError) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.toggle("error", !!isError);
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+async function doCopyMail() {
+  const ok = await copyRich(buildMailHtml(true), buildMailText());
+  if (ok) { toast("Mail copié — collez-le dans Outlook avec Ctrl + V"); return; }
+  state.tab = "rich";
+  syncTabs();
+  const node = document.getElementById("mailRich");
+  node.scrollIntoView({ block: "nearest" });
+  selectNode(node);
+  toast("Copie automatique bloquée. Le mail est sélectionné : faites Ctrl + C.", true);
+}
+
+/* =====================================================================
+   5. Rendu de l'interface
+   ===================================================================== */
+
+function renderChips() {
+  const box = document.getElementById("chips");
+  box.innerHTML = "";
+  diagnosticsConfig.forEach(d => {
+    const on = state.diagnostics.includes(d.key);
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+    b.innerHTML = `<span class="tick">✓</span>${esc(d.label)}`;
+    b.addEventListener("click", () => {
+      state.diagnostics = on
+        ? state.diagnostics.filter(k => k !== d.key)
+        : [...state.diagnostics, d.key];
+      renderAll();
+    });
+    box.appendChild(b);
+  });
+
+  const note = document.getElementById("besoinNote");
+  if (!state.diagnostics.length) {
+    note.hidden = false;
+    note.textContent = "Aucun besoin sélectionné : le mail ne contient que le tronc commun (administratif, facturation, bien).";
+  } else {
+    note.hidden = true;
+  }
+}
+
+function renderSections() {
+  const box = document.getElementById("sections");
+  box.innerHTML = "";
+
+  activeSectionKeys().forEach(key => {
+    const conf = baseSections[key];
+    const section = state.sections[key];
+    const open = !!state.open[key];
+    const pickable = selectableItems(key);
+    const chosen = pickable.filter(i => isOn(key, i)).length + section.customItems.length;
+    const total = pickable.length + section.customItems.length;
+
+    const acc = document.createElement("div");
+    acc.className = "acc" + (open ? " open" : "") + (conf.flag ? " required" : "");
+
+    const head = document.createElement("button");
+    head.type = "button";
+    head.className = "acc-head";
+    head.setAttribute("aria-expanded", open ? "true" : "false");
+    head.innerHTML =
+      `<span class="caret">▶</span>` +
+      `<span class="acc-title">${esc(conf.title)}</span>` +
+      (conf.flag ? `<span class="flag">${esc(conf.flag)}</span>` : "") +
+      `<span class="count${chosen ? "" : " none"}">${chosen}/${total}</span>`;
+    head.addEventListener("click", () => {
+      state.open[key] = !open;
+      renderSections();
+      save();
+    });
+    acc.appendChild(head);
+
+    if (open) {
+      const body = document.createElement("div");
+      body.className = "acc-body";
+
+      const bulk = document.createElement("div");
+      bulk.className = "bulk";
+      const all = document.createElement("button");
+      all.type = "button"; all.className = "btn line mini"; all.textContent = "Tout cocher";
+      const none = document.createElement("button");
+      none.type = "button"; none.className = "btn line mini"; none.textContent = "Tout décocher";
+      all.addEventListener("click", () => { pickable.forEach(i => section.selected[i] = true); renderAll(); });
+      none.addEventListener("click", () => { pickable.forEach(i => section.selected[i] = false); renderAll(); });
+      bulk.append(all, none);
+      body.appendChild(bulk);
+
+      const list = document.createElement("div");
+      list.className = "checks";
+      allItems(key).forEach(item => {
+        const known = alreadyKnown(key, item);
+        const row = document.createElement("label");
+        row.className = "check" + (known ? " locked" : "");
+        row.innerHTML =
+          `<input type="checkbox" ${isOn(key, item) ? "checked" : ""} ${known ? "disabled" : ""} />` +
+          `<span>${esc(item)}${known ? ` <span class="why">— déjà renseigné dans le contexte</span>` : ""}</span>`;
+        if (!known) {
+          row.querySelector("input").addEventListener("change", e => {
+            section.selected[item] = e.target.checked;
+            renderAll();
+          });
+        }
+        list.appendChild(row);
+      });
+      body.appendChild(list);
+
+      if (section.customItems.length) {
+        const adds = document.createElement("div");
+        adds.className = "adds";
+        section.customItems.forEach((item, idx) => {
+          const row = document.createElement("div");
+          row.className = "add-item";
+          row.innerHTML = `<span>${esc(item)}</span><button type="button" class="x" aria-label="Retirer">✕</button>`;
+          row.querySelector("button").addEventListener("click", () => {
+            section.customItems.splice(idx, 1);
+            renderAll();
+          });
+          adds.appendChild(row);
+        });
+        body.appendChild(adds);
+      }
+
+      const addRow = document.createElement("div");
+      addRow.className = "add-row";
+      addRow.innerHTML =
+        `<input type="text" placeholder="Ajouter une demande à cette rubrique" />` +
+        `<button type="button" class="btn line">Ajouter</button>`;
+      const input = addRow.querySelector("input");
+      input.value = section.draft;
+      const add = () => {
+        const v = input.value.trim();
+        if (!v) return;
+        section.customItems.push(v);
+        section.draft = "";
+        renderAll();
+      };
+      input.addEventListener("input", e => { section.draft = e.target.value; });
+      input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); add(); } });
+      addRow.querySelector("button").addEventListener("click", add);
+      body.appendChild(addRow);
+
+      acc.appendChild(body);
+    }
+
+    box.appendChild(acc);
+  });
+}
+
+function renderBottom() {
+  const list = document.getElementById("bottomList");
+  list.innerHTML = "";
+  state.bottomItems.forEach((item, idx) => {
+    const row = document.createElement("div");
+    row.className = "add-item";
+    row.innerHTML = `<span>${esc(item)}</span><button type="button" class="x" aria-label="Retirer">✕</button>`;
+    row.querySelector("button").addEventListener("click", () => {
+      state.bottomItems.splice(idx, 1);
+      renderAll();
+    });
+    list.appendChild(row);
+  });
+}
+
+function renderPreview() {
+  document.getElementById("subjectPreview").textContent = buildSubject();
+  document.getElementById("mailRich").innerHTML = buildMailHtml(false);
+  document.getElementById("mailPlain").textContent = buildMailText();
+}
+
+function syncTabs() {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === state.tab));
+  document.getElementById("mailRich").hidden = state.tab !== "rich";
+  document.getElementById("mailPlain").hidden = state.tab !== "plain";
+}
+
+function renderAll() {
+  syncDpe();
+  syncCommunsTravaux();
+  renderChips();
+  renderSections();
+  renderBottom();
+  renderPreview();
+  save();
+}
+
+/* =====================================================================
+   6. Branchements (une seule fois)
+   ===================================================================== */
+
+function fillForm() {
+  Object.keys(defaultForm).forEach(k => {
+    const el = document.getElementById(k);
+    if (el) el.value = state.form[k] || "";
+  });
+  document.getElementById("fontChoice").value = state.style.font;
+  document.getElementById("sizeChoice").value = state.style.size;
+  document.getElementById("colorTitles").checked = state.style.colorTitles;
+}
+
+function bindOnce() {
+  Object.keys(defaultForm).forEach(k => {
+    const el = document.getElementById(k);
+    if (!el) return;
+    const handler = e => { state.form[k] = e.target.value; renderAll(); };
+    el.addEventListener("input", handler);
+    el.addEventListener("change", handler);
+  });
+
+  document.getElementById("fontChoice").addEventListener("change", e => { state.style.font = e.target.value; renderPreview(); save(); });
+  document.getElementById("sizeChoice").addEventListener("change", e => { state.style.size = e.target.value; renderPreview(); save(); });
+  document.getElementById("colorTitles").addEventListener("change", e => { state.style.colorTitles = e.target.checked; renderPreview(); save(); });
+
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => { state.tab = tab.dataset.tab; syncTabs(); save(); });
+  });
+
+  const addBottom = () => {
+    const input = document.getElementById("bottomInput");
+    const v = input.value.trim();
+    if (!v) return;
+    state.bottomItems.push(v);
+    input.value = "";
+    renderAll();
+  };
+  document.getElementById("addBottom").addEventListener("click", addBottom);
+  document.getElementById("bottomInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); addBottom(); }
+  });
+
+  document.getElementById("expandAll").addEventListener("click", () => {
+    activeSectionKeys().forEach(k => state.open[k] = true);
+    renderSections(); save();
+  });
+  document.getElementById("collapseAll").addEventListener("click", () => {
+    state.open = {};
+    renderSections(); save();
+  });
+
+  document.getElementById("copyMailTop").addEventListener("click", doCopyMail);
+  document.getElementById("copyMailBottom").addEventListener("click", doCopyMail);
+  document.getElementById("copySubjectTop").addEventListener("click", async () => {
+    const ok = await copyPlainText(buildSubject());
+    toast(ok ? "Objet copié" : "Copie impossible", !ok);
+  });
+  document.getElementById("copyPlain").addEventListener("click", async () => {
+    const ok = await copyPlainText(buildMailText());
+    toast(ok ? "Mail copié en texte brut" : "Copie impossible", !ok);
+  });
+  document.getElementById("selectMail").addEventListener("click", () => {
+    state.tab = "rich";
+    syncTabs();
+    selectNode(document.getElementById("mailRich"));
+    toast("Mail sélectionné — appuyez sur Ctrl + C");
+  });
+
+  document.getElementById("newFile").addEventListener("click", () => {
+    if (!confirm("Repartir d’un dossier vierge ? Le brouillon en cours sera perdu.")) return;
+    const keptStyle = { ...state.style };
+    state = freshState();
+    state.style = keptStyle;
+    fillForm();
+    renderAll();
+    toast("Nouveau dossier");
+  });
+
+  document.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); doCopyMail(); }
+  });
+}
+
+/* ------------------------------ Démarrage ------------------------------ */
+load();
+fillForm();
+bindOnce();
+syncTabs();
+renderAll();
+</script>
+</body>
+</html>
